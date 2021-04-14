@@ -195,6 +195,16 @@ tag version
 endtag
 ```
 
+### End of file tag
+
+Its a common convention to have the last tag in a roff file be
+an empty tag with name eof:
+
+```
+tag eof
+endtag
+```
+
 ### Mapping of python types to roff types
 
 Reading and writing maps roff types to python types, usually as expected.
