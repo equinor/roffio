@@ -5,6 +5,7 @@ import pytest
 from hypothesis import given
 
 import _roffio.tokenizer as rofftok
+from _roffio.parser import as_ascii
 from _roffio.tokenizer import TokenKind
 
 from .generators.roff_file_contents import (
@@ -12,12 +13,6 @@ from .generators.roff_file_contents import (
     binary_file_contents,
     whitespace,
 )
-
-
-def as_ascii(bytelike):
-    if hasattr(bytelike, "decode"):
-        bytelike = bytelike.decode("ascii")
-    return bytelike
 
 
 @pytest.fixture(params=[lambda x: x + " ", lambda x: " " + x, lambda x: x])
