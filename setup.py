@@ -18,7 +18,7 @@ setup(
     long_description_content_type="text/markdown",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
-    install_requires=["dataclasses>=0.6;python_version<'3.7'"],
+    install_requires=["dataclasses>=0.6;python_version<'3.7'", "numpy"],
     platforms="any",
     classifiers=[
         "Development Status :: 1 - Planning",
