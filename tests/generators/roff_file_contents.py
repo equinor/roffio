@@ -50,11 +50,27 @@ def binary_values(draw, kindstr):
 ascii_values = st.builds(
     str,
     st.one_of(
-        st.integers(),
+        st.integers(min_value=-(2 ** 30), max_value=2 ** 30),
         st.floats(allow_infinity=False, allow_nan=False),
         string_literals(),
     ),
 )
+
+
+def typed_ascii_values(kindstr):
+    if kindstr == "bool":
+        return st.integers(min_value=0, max_value=1)
+    elif kindstr == "byte":
+        return st.integers(min_value=0, max_value=127)
+    elif kindstr == "int":
+        return st.integers(min_value=-(2 ** 30), max_value=2 ** 30)
+    elif kindstr == "float":
+        return st.floats(allow_infinity=False, allow_nan=False)
+    elif kindstr == "double":
+        return st.floats(allow_infinity=False, allow_nan=False)
+    elif kindstr == "char":
+        return string_literals()
+
 
 whitespace = st.text(alphabet=st.characters(whitelist_categories="Z"), min_size=1)
 
@@ -70,19 +86,31 @@ def binary_simple_tag_keys(draw):
 
 @st.composite
 def ascii_simple_tag_keys(draw):
-    tag_key_str = draw(simple_types) + draw(whitespace)
+    typ = draw(simple_types)
+    tag_key_str = typ + draw(whitespace)
     tag_key_str += draw(keywords) + draw(whitespace)
-    tag_key_str += draw(ascii_values)
+    tag_key_str += str(draw(typed_ascii_values(typ)))
     return tag_key_str
 
 
 @st.composite
 def ascii_array_tag_keys(draw):
     tag_key_str = "array" + draw(whitespace)
-    tag_key_str += draw(simple_types) + draw(whitespace)
+    typ = draw(simple_types)
+    tag_key_str += typ + draw(whitespace)
     tag_key_str += draw(keywords) + draw(whitespace)
-    tag_key_str += str(draw(st.integers(min_value=0))) + draw(whitespace)
-    tag_key_str += " ".join(draw(st.lists(ascii_values, max_size=5)))
+    array_size = draw(st.integers(min_value=0, max_value=5))
+    tag_key_str += str(array_size) + draw(whitespace)
+    tag_key_str += " ".join(
+        map(
+            str,
+            draw(
+                st.lists(
+                    typed_ascii_values(typ), min_size=array_size, max_size=array_size
+                )
+            ),
+        )
+    )
     return tag_key_str
 
 
