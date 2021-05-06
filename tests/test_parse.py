@@ -174,6 +174,102 @@ def test_parse_binary_file(binary_str):
         pass
 
 
+@pytest.mark.parametrize(
+    "input_str, expected, expected_type",
+    [
+        ("int x 3", ("x", 3), np.int32),
+        ("float x 3.0", ("x", 3.0), np.float32),
+        ("double x 3.0", ("x", 3.0), np.float64),
+        ("byte x 1", ("x", b"\x01"), bytes),
+        ("bool x 1", ("x", True), bool),
+    ],
+)
+def test_parse_tagkey_ascii_types(input_str, expected, expected_type):
+    stream = io.StringIO(input_str)
+    tokens = rofftok.tokenize_ascii_tagkey(stream)
+    parser = roffparse.RoffTagKeyParser(
+        tokens, stream, roffparse.RoffParser(stream, tokens)
+    )
+    val = next(iter(parser))
+    assert val == expected
+    assert isinstance(val[1], expected_type)
+
+
+@pytest.mark.parametrize(
+    "input_str, expected, expected_type",
+    [
+        (b"int\0x\0\x03\x00\x00\x00", ("x", 3), np.int32),
+        (b"float\0x\0\x00\x00\x00\x00", ("x", 0.0), np.float32),
+        (b"double\0x\0" + b"\x00" * 8, ("x", 0.0), np.float64),
+        (b"byte\0x\0\x01", ("x", b"\x01"), bytes),
+        (b"bool\0x\0\x01", ("x", True), bool),
+    ],
+)
+def test_parse_tagkey_binary_types(input_str, expected, expected_type):
+    stream = io.BytesIO(input_str)
+    tokens = rofftok.tokenize_simple_binary_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = True
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    val = next(iter(parser))
+    assert val == expected
+    assert isinstance(val[1], expected_type)
+
+
+@pytest.mark.parametrize(
+    "input_str, expected",
+    [
+        (
+            b"array\0int\0x\0\x01\x00\x00\x00\x03\x00\x00\x00",
+            ("x", np.array([3], dtype=np.int32)),
+        ),
+        (
+            b"array\0float\0x\0\x01\x00\x00\x00\x00\x00\x00\x00",
+            ("x", np.array([0.0], dtype=np.float32)),
+        ),
+        (
+            b"array\0double\0x\0\x01\x00\x00\x00" + b"\x00" * 8,
+            ("x", np.array([0.0], dtype=np.float64)),
+        ),
+        (b"array\0byte\0x\0\x02\x00\x00\x00\x01\x02", ("x", b"\x01\x02")),
+        (
+            b"array\0bool\0x\0\x01\x00\x00\x00\x01",
+            ("x", np.array([True], dtype=np.bool_)),
+        ),
+    ],
+)
+def test_parse_tagkey_binary_array_types(input_str, expected):
+    stream = io.BytesIO(input_str)
+    tokens = rofftok.RoffTokenizer(stream).tokenize_binary_array_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = True
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    val = next(iter(parser))
+    assert val[0] == expected[0]
+    assert np.array_equal(val[1], expected[1])
+
+
+@pytest.mark.parametrize(
+    "input_str, expected",
+    [
+        ("array int x 1 3", ("x", np.array([3], dtype=np.int32))),
+        ("array float x 1 0.0", ("x", np.array([0.0], dtype=np.float32))),
+        ("array double x 1 0.0", ("x", np.array([0.0], dtype=np.float64))),
+        ("array byte x 2 1 2", ("x", b"\x01\x02")),
+        ("array bool x 1 1", ("x", np.array([True], dtype=np.bool_))),
+    ],
+)
+def test_parse_tagkey_ascii_array_types(input_str, expected):
+    stream = io.StringIO(input_str)
+    tokens = rofftok.tokenize_ascii_array_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = False
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    val = next(iter(parser))
+    assert val[0] == expected[0]
+    assert np.array_equal(val[1], expected[1])
+
+
 def test_parse_boolean_values_typing():
     stream = io.StringIO("bool x 2")
     tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
@@ -193,3 +289,23 @@ def test_parse_boolean_values():
 
     parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
     assert next(iter(parser)) == ("x", True)
+
+
+def test_parse_byten_values():
+    stream = io.StringIO("byte x 1")
+    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = False
+
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    assert next(iter(parser)) == ("x", b"\x01")
+
+
+def test_parse_byte_array_values():
+    stream = io.StringIO("array byte x 2 255 0")
+    tokens = rofftok.tokenize_ascii_array_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = False
+
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    assert next(iter(parser)) == ("x", b"\xff\x00")
