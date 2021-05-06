@@ -50,6 +50,28 @@ with roffio.lazyread("my/file.roff") as contents:
 
 ```
 
+### Same name tags and tag-keys
+
+The simple read/write functions works best for tags and tagkeys with unique
+names, however, if the file has multiple tags with the same name, a list will
+be returned:
+
+
+```
+import roffio
+
+contents = [
+ ("tagname", ("keyname", 1.0)),
+ ("tagname", ("keyname", 2.0)),
+]
+
+roffio.write("my/file.roff", contents)
+
+values = roffio.read("my/file.roff")
+```
+
+Then `values["tagname"]` will be the list `[{"keyname": 1.0}, {"keyname": 2.0}]`.
+
 
 ## building
 
@@ -210,4 +232,37 @@ endtag
 Reading and writing maps roff types to python types, usually as expected.
 For more control use numpy dtypes, ie. numpy.array(dtype="float32") will
 be written as a tag key as with roff type "array float". Reading always
-results in numpy arrays and dtypes for performance reasons.
+results in numpy arrays and dtypes for performance reasons, that is,
+except for bytes.
+
+#### Special case of bytes:
+
+writing of python `bytes` results in roff keys with types of either `array bytes`
+or `byte` depending on length. If the length is `1` then you get a non-array
+tag key:
+
+```python
+roffio.write("my/file.roff", { "t": { "key": b'\x00' }})
+```
+
+results in a roff file containing
+
+```
+tag t
+bytes key 0
+endtag
+```
+
+while
+
+```python
+roffio.write("my/file.roff", { "t": { "key": b'\x00\x01' }})
+```
+
+results in a roff file containing
+
+```
+tag t
+array bytes key 2 0 1
+endtag
+```
