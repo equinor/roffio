@@ -153,7 +153,7 @@ def test_parse_array_tagkey(inp_str, expected):
 
 
 @given(ascii_file_contents())
-def test_tokenize_ascii_file(ascii_str):
+def test_parse_ascii_file(ascii_str):
     stream = io.StringIO(ascii_str)
     tokens = iter(rofftok.RoffTokenizer(stream))
     parser = roffparse.RoffParser(tokens, stream)
@@ -164,7 +164,7 @@ def test_tokenize_ascii_file(ascii_str):
 
 
 @given(binary_file_contents())
-def test_tokenize_binary_file(binary_str):
+def test_parse_binary_file(binary_str):
     stream = io.BytesIO(binary_str)
     tokens = iter(rofftok.RoffTokenizer(stream, endianess="little"))
     parser = roffparse.RoffParser(tokens, stream)
