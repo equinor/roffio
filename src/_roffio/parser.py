@@ -320,7 +320,26 @@ class RoffParser:
         """
         self.tokens = tokens
         self.stream = stream
+        self.is_binary_file = False
+
+        self._endianess = None
         self.endianess = endianess
+
+    @property
+    def endianess(self):
+        return self._endianess
+
+    @endianess.setter
+    def endianess(self, value):
+        if value not in ["little", "big"]:
+            raise ValueError("endianess has to be either 'little' or 'big'")
+        self._endianess = value
+
+    def swap_endianess(self):
+        if self.endianess == "little":
+            self.endianess = "big"
+        else:
+            self.endianess = "little"
 
     def parse_tag(self):
         try:
@@ -336,7 +355,9 @@ class RoffParser:
         yield (name, tagkey_generator)
 
     def __iter__(self):
-        next(parse_one_of(TokenKind.ROFF_BIN, TokenKind.ROFF_ASC)(self.tokens))
+        header = next(parse_one_of(TokenKind.ROFF_BIN, TokenKind.ROFF_ASC)(self.tokens))
+        if header == TokenKind.ROFF_BIN:
+            self.is_binary_file = True
         while True:
             try:
                 tag = next(self.parse_tag())

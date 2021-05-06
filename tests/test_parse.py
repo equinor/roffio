@@ -309,3 +309,22 @@ def test_parse_byte_array_values():
 
     parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
     assert next(iter(parser)) == ("x", b"\xff\x00")
+
+
+def test_endianess_swap():
+    stream = io.BytesIO(
+        b"roff-bin\0tag\0t\0int\0x\0\x01\0\0\0int\0y\0\0\0\0\xFFendtag\0"
+    )
+    tokenizer = rofftok.RoffTokenizer(stream)
+    parser = roffparse.RoffParser(iter(tokenizer), stream)
+    tag = next(iter(parser))
+    assert tag[0] == "t"
+    assert next(tag[1]) == ("x", 1)
+    assert tokenizer.endianess == "little"
+    assert parser.endianess == "little"
+    tokenizer.swap_endianess()
+    parser.swap_endianess()
+    assert tokenizer.endianess == "big"
+    assert parser.endianess == "big"
+    assert tag[0] == "t"
+    assert next(tag[1]) == ("y", 255)
