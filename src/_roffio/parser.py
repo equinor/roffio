@@ -93,7 +93,7 @@ def parse_name(tokens, stream):
 # used for reading numeric values with
 # a given type.
 dtype_little = {
-    TokenKind.BYTE: np.int8,
+    TokenKind.BYTE: np.uint8,
     TokenKind.BOOL: np.bool_,
     TokenKind.INT: np.int32,
     TokenKind.FLOAT: np.float32,
@@ -209,6 +209,9 @@ class RoffTagKeyParser:
             yield from self.parse_string_literal()
         elif typ == TokenKind.BOOL:
             yield from self.parse_boolean_value()
+        elif typ == TokenKind.BYTE:
+            val = next(self.parse_numeric_value(dtype[self.roffparser.endianess][typ]))
+            yield val.tobytes()
         else:
             yield from self.parse_numeric_value(dtype[self.roffparser.endianess][typ])
 
@@ -233,17 +236,24 @@ class RoffTagKeyParser:
         """
         first_tok = next(self.tokens)
         if first_tok.kind == TokenKind.ARRAYBLOB:
-            yield (
-                lambda: np.ndarray(
-                    number,
-                    dtype[self.roffparser.endianess][typ],
-                    first_tok.get_value(self.stream),
+            if typ == TokenKind.BYTE:
+                yield (lambda: first_tok.get_value(self.stream))
+            else:
+                yield (
+                    lambda: np.ndarray(
+                        number,
+                        dtype[self.roffparser.endianess][typ],
+                        first_tok.get_value(self.stream),
+                    )
                 )
-            )
         else:
             self.tokens = chain([first_tok], self.tokens)
             try:
-                yield np.array([next(self.parse_value(typ)) for _ in range(number)])
+                vals = np.array([next(self.parse_value(typ)) for _ in range(number)])
+                if typ == TokenKind.BYTE:
+                    yield vals.tobytes()
+                else:
+                    yield vals
             except StopIteration as stop_it:
                 raise RoffSyntaxError(
                     f"Expected {number} values to follow array {name} at {first_tok.start}"
@@ -259,7 +269,7 @@ class RoffTagKeyParser:
             self.parse_numeric_value(dtype[self.roffparser.endianess][TokenKind.INT])
         )
         values = next(self.parse_array_values(typ, name, number))
-        if isinstance(values, np.ndarray):
+        if isinstance(values, np.ndarray) or isinstance(values, bytes):
             yield (name, values)
         else:
             yield LazyTuple(lambda: name, values)
