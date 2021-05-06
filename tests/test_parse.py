@@ -172,3 +172,24 @@ def test_parse_binary_file(binary_str):
         {t: {tk: v for tk, v in tags} for t, tags in iter(parser)}
     except roffparse.RoffTypeError:
         pass
+
+
+def test_parse_boolean_values_typing():
+    stream = io.StringIO("bool x 2")
+    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = False
+
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    with pytest.raises(roffparse.RoffTypeError, match="must be either 1 or 0"):
+        next(iter(parser))
+
+
+def test_parse_boolean_values():
+    stream = io.StringIO("bool x 1")
+    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    parser = roffparse.RoffParser(tokens, stream)
+    parser.is_binary_file = False
+
+    parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
+    assert next(iter(parser)) == ("x", True)

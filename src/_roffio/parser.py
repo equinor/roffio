@@ -141,6 +141,28 @@ class RoffTagKeyParser:
             first_tok = next(self.tokens)
             self.tokens = chain([first_tok], self.tokens)
 
+    def parse_boolean_value(self):
+        """
+        Takes a boolean value token from the token generator and
+        yields the boolean value.
+        :param dtype: The numpy dtype of the numeric value.
+        """
+        num_token = next(self.tokens)
+        val_str = num_token.get_value(self.stream)
+        if len(val_str) != 1:
+            raise RoffSyntaxError(f"too long boolean value, found: {val_str}")
+        if self.roffparser.is_binary_file:
+            value = int.from_bytes(val_str, self.roffparser.endianess)
+        else:
+            value = int(as_ascii(val_str))
+
+        if value == 1:
+            yield True
+        elif value == 0:
+            yield False
+        else:
+            raise RoffTypeError(f"boolean values must be either 1 or 0, found {value}")
+
     def parse_numeric_value(self, dtype):
         """
         Takes a numeric token from the token generator and
@@ -185,6 +207,8 @@ class RoffTagKeyParser:
         """
         if typ == TokenKind.CHAR:
             yield from self.parse_string_literal()
+        elif typ == TokenKind.BOOL:
+            yield from self.parse_boolean_value()
         else:
             yield from self.parse_numeric_value(dtype[self.roffparser.endianess][typ])
 
@@ -195,12 +219,7 @@ class RoffTagKeyParser:
         :param typ: The kind of the simple type token
         """
         name = next(parse_name(self.tokens, self.stream))
-        if typ == TokenKind.CHAR:
-            value = next(self.parse_string_literal())
-        else:
-            value = next(
-                self.parse_numeric_value(dtype[self.roffparser.endianess][typ])
-            )
+        value = next(self.parse_value(typ))
         yield (name, value)
 
     def parse_array_values(self, typ, name, number):
