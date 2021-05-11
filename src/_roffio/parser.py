@@ -8,8 +8,9 @@ from enum import Enum
 from itertools import chain, dropwhile, takewhile, tee
 
 import numpy as np
+
 from _roffio.lazy_tuple import LazyTuple
-from _roffio.tokenizer import TokenKind
+from _roffio.tokenizer.token_kind import TokenKind
 
 
 # The token stream can contain string values or

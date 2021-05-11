@@ -5,7 +5,11 @@ import pytest
 from hypothesis import given
 
 import _roffio.parser as roffparse
-import _roffio.tokenizer as rofftok
+from _roffio.tokenizer import RoffTokenizer
+from _roffio.tokenizer.binary_roff_body_tokenizer import BinaryRoffBodyTokenizer
+from _roffio.tokenizer.text_roff_body_tokenizer import TextRoffBodyTokenizer
+from _roffio.tokenizer.token import Token
+from _roffio.tokenizer.token_kind import TokenKind
 
 from .generators.roff_file_contents import (
     ascii_file_contents,
@@ -15,7 +19,7 @@ from .generators.roff_file_contents import (
 
 
 def test_parse_numeric_value_type_error():
-    tokens = iter([rofftok.Token(rofftok.TokenKind.STRING_LITERAL, 0, 0)])
+    tokens = iter([Token(TokenKind.STRING_LITERAL, 0, 0)])
     stream = io.StringIO()
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     with pytest.raises(roffparse.RoffTypeError):
@@ -23,7 +27,7 @@ def test_parse_numeric_value_type_error():
 
 
 def test_parse_numeric_value_syntax_error():
-    tokens = iter([rofftok.Token(rofftok.TokenKind.NUMERIC_VALUE, 0, 0)])
+    tokens = iter([Token(TokenKind.NUMERIC_VALUE, 0, 0)])
     stream = io.StringIO("ERR")
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     with pytest.raises(roffparse.RoffSyntaxError):
@@ -42,7 +46,7 @@ def test_parse_numeric_value_syntax_error():
     ],
 )
 def test_parse_numeric_ascii_value(valuestr, valuetype, expected):
-    tokens = iter([rofftok.Token(rofftok.TokenKind.NUMERIC_VALUE, 0, len(valuestr))])
+    tokens = iter([Token(TokenKind.NUMERIC_VALUE, 0, len(valuestr))])
     stream = io.StringIO(valuestr)
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     assert next(parser.parse_numeric_value(valuetype)) == expected
@@ -61,23 +65,21 @@ def test_parse_numeric_ascii_value(valuestr, valuetype, expected):
     ],
 )
 def test_parse_numeric_binary_value(dtype, bytevalue, expected):
-    tokens = iter(
-        [rofftok.Token(rofftok.TokenKind.BINARY_NUMERIC_VALUE, 0, len(bytevalue))]
-    )
+    tokens = iter([Token(TokenKind.BINARY_NUMERIC_VALUE, 0, len(bytevalue))])
     stream = io.BytesIO(bytevalue)
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     assert next(parser.parse_numeric_value(dtype)) == expected
 
 
 def test_parse_binary_string_Literal():
-    tokens = iter([rofftok.Token(rofftok.TokenKind.STRING_LITERAL, 0, 5)])
+    tokens = iter([Token(TokenKind.STRING_LITERAL, 0, 5)])
     stream = io.BytesIO(b"hello\0")
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     assert next(parser.parse_string_literal()) == "hello"
 
 
 def test_parse_ascii_string_literal():
-    tokens = iter([rofftok.Token(rofftok.TokenKind.STRING_LITERAL, 1, 6)])
+    tokens = iter([Token(TokenKind.STRING_LITERAL, 1, 6)])
     stream = io.StringIO('"hello"')
     parser = roffparse.RoffTagKeyParser(tokens, stream, None)
     assert next(parser.parse_string_literal()) == "hello"
@@ -86,31 +88,29 @@ def test_parse_ascii_string_literal():
 def test_parse_one_of():
     assert (
         next(
-            roffparse.parse_one_of(rofftok.TokenKind.TAG)(
-                iter([rofftok.Token(rofftok.TokenKind.TAG, 0, 3)]),
+            roffparse.parse_one_of(TokenKind.TAG)(
+                iter([Token(TokenKind.TAG, 0, 3)]),
             )
         )
-        == rofftok.TokenKind.TAG
+        == TokenKind.TAG
     )
     with pytest.raises(roffparse.RoffSyntaxError):
         next(
             roffparse.parse_one_of(
-                rofftok.TokenKind.INT,
-            )(iter([rofftok.Token(rofftok.TokenKind.TAG, 0, 3)]))
+                TokenKind.INT,
+            )(iter([Token(TokenKind.TAG, 0, 3)]))
         )
 
 
 @pytest.mark.parametrize(
     "typestr, expected",
-    [(rofftok.TokenKind.keywords()[st], st) for st in rofftok.TokenKind.simple_types()],
+    [(TokenKind.keywords()[st], st) for st in TokenKind.simple_types()],
 )
 def test_parse_simple_type(typestr, expected):
+    stream = io.StringIO(typestr)
+    tokenizer = TextRoffBodyTokenizer(stream)
     assert (
-        next(
-            roffparse.parse_simple_type(
-                rofftok.tokenize_keyword[expected](io.StringIO(typestr))
-            )
-        )
+        next(roffparse.parse_simple_type(tokenizer.tokenize_keyword[expected]()))
         == expected
     )
 
@@ -126,7 +126,8 @@ def test_parse_simple_type(typestr, expected):
 )
 def test_parse_simple_tagkey(inp_str, expected):
     stream = io.StringIO(inp_str)
-    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_simple_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     tagkey_parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
     assert next(tagkey_parser.parse_tagkey()) == expected
@@ -143,7 +144,8 @@ def test_parse_simple_tagkey(inp_str, expected):
 )
 def test_parse_array_tagkey(inp_str, expected):
     stream = io.StringIO(inp_str)
-    tokens = rofftok.tokenize_ascii_array_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_array_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     tagkey_parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
     varname, array = next(tagkey_parser.parse_tagkey())
@@ -155,7 +157,7 @@ def test_parse_array_tagkey(inp_str, expected):
 @given(ascii_file_contents())
 def test_parse_ascii_file(ascii_str):
     stream = io.StringIO(ascii_str)
-    tokens = iter(rofftok.RoffTokenizer(stream))
+    tokens = iter(RoffTokenizer(stream))
     parser = roffparse.RoffParser(tokens, stream)
     try:
         {t: {tk: v for tk, v in tags} for t, tags in iter(parser)}
@@ -166,7 +168,7 @@ def test_parse_ascii_file(ascii_str):
 @given(binary_file_contents())
 def test_parse_binary_file(binary_str):
     stream = io.BytesIO(binary_str)
-    tokens = iter(rofftok.RoffTokenizer(stream, endianess="little"))
+    tokens = iter(RoffTokenizer(stream, endianess="little"))
     parser = roffparse.RoffParser(tokens, stream)
     try:
         {t: {tk: v for tk, v in tags} for t, tags in iter(parser)}
@@ -186,7 +188,8 @@ def test_parse_binary_file(binary_str):
 )
 def test_parse_tagkey_ascii_types(input_str, expected, expected_type):
     stream = io.StringIO(input_str)
-    tokens = rofftok.tokenize_ascii_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_tagkey()
     parser = roffparse.RoffTagKeyParser(
         tokens, stream, roffparse.RoffParser(stream, tokens)
     )
@@ -207,7 +210,8 @@ def test_parse_tagkey_ascii_types(input_str, expected, expected_type):
 )
 def test_parse_tagkey_binary_types(input_str, expected, expected_type):
     stream = io.BytesIO(input_str)
-    tokens = rofftok.tokenize_simple_binary_tagkey(stream)
+    tokenizer = BinaryRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_simple_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = True
     parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
@@ -240,7 +244,7 @@ def test_parse_tagkey_binary_types(input_str, expected, expected_type):
 )
 def test_parse_tagkey_binary_array_types(input_str, expected):
     stream = io.BytesIO(input_str)
-    tokens = rofftok.RoffTokenizer(stream).tokenize_binary_array_tagkey(stream)
+    tokens = BinaryRoffBodyTokenizer(stream).tokenize_array_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = True
     parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
@@ -261,7 +265,8 @@ def test_parse_tagkey_binary_array_types(input_str, expected):
 )
 def test_parse_tagkey_ascii_array_types(input_str, expected):
     stream = io.StringIO(input_str)
-    tokens = rofftok.tokenize_ascii_array_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_array_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = False
     parser = roffparse.RoffTagKeyParser(tokens, stream, parser)
@@ -272,7 +277,8 @@ def test_parse_tagkey_ascii_array_types(input_str, expected):
 
 def test_parse_boolean_values_typing():
     stream = io.StringIO("bool x 2")
-    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_simple_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = False
 
@@ -283,7 +289,8 @@ def test_parse_boolean_values_typing():
 
 def test_parse_boolean_values():
     stream = io.StringIO("bool x 1")
-    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_simple_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = False
 
@@ -293,7 +300,8 @@ def test_parse_boolean_values():
 
 def test_parse_byten_values():
     stream = io.StringIO("byte x 1")
-    tokens = rofftok.tokenize_simple_ascii_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_simple_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = False
 
@@ -303,7 +311,8 @@ def test_parse_byten_values():
 
 def test_parse_byte_array_values():
     stream = io.StringIO("array byte x 2 255 0")
-    tokens = rofftok.tokenize_ascii_array_tagkey(stream)
+    tokenizer = TextRoffBodyTokenizer(stream)
+    tokens = tokenizer.tokenize_array_tagkey()
     parser = roffparse.RoffParser(tokens, stream)
     parser.is_binary_file = False
 
@@ -315,7 +324,7 @@ def test_endianess_swap():
     stream = io.BytesIO(
         b"roff-bin\0tag\0t\0int\0x\0\x01\0\0\0int\0y\0\0\0\0\xFFendtag\0"
     )
-    tokenizer = rofftok.RoffTokenizer(stream)
+    tokenizer = RoffTokenizer(stream)
     parser = roffparse.RoffParser(iter(tokenizer), stream)
     tag = next(iter(parser))
     assert tag[0] == "t"
