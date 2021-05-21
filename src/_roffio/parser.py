@@ -4,8 +4,7 @@ generates the corresponding roff data. For entire files, roff data is a two leve
 dictionary of tagname and tagkeyname to values, but for subsections of roff
 files, the parser returns the corresponding subdata of the dictionary.
 """
-from enum import Enum
-from itertools import chain, dropwhile, takewhile, tee
+from itertools import chain, dropwhile, tee
 
 import numpy as np
 
