@@ -11,11 +11,7 @@ from _roffio.tokenizer.text_roff_body_tokenizer import TextRoffBodyTokenizer
 from _roffio.tokenizer.token import Token
 from _roffio.tokenizer.token_kind import TokenKind
 
-from .generators.roff_file_contents import (
-    ascii_file_contents,
-    binary_file_contents,
-    whitespace,
-)
+from .generators.roff_file_contents import ascii_file_contents, binary_file_contents
 
 
 def test_parse_numeric_value_type_error():

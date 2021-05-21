@@ -2,9 +2,8 @@ import io
 
 import pytest
 
-from _roffio.tokenizer.combinators import bind, one_of, repeated
+from _roffio.tokenizer.combinators import one_of, repeated
 from _roffio.tokenizer.common import tokenize_word
-from _roffio.tokenizer.errors import TokenizationError
 
 
 @pytest.mark.parametrize("inp_str", ["foo foo foo", "foo foo foobar"])
