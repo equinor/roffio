@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import _roffio.parser as roffparse
 import _roffio.tokenizer as rofftok
 from _roffio.endianess_handler import EndianessHandler
+from _roffio.tokenizer.errors import WrongFileModeError
 
 
 def read(filelike):
@@ -38,15 +39,31 @@ def read(filelike):
     return dict(result)
 
 
+def make_filestream(filelike):
+    file_stream = open(filelike, "rb")
+    tokenizer = rofftok.RoffTokenizer(file_stream)
+    try:
+        next(iter(tokenizer))
+        file_stream.seek(0)
+    except WrongFileModeError:
+        file_stream.close()
+        file_stream = open(filelike, "rt")
+
+    return file_stream
+
+
 @contextmanager
 def lazy_read(filelike):
     file_stream = filelike
     did_open = False
     if isinstance(filelike, (str, pathlib.Path)):
         did_open = True
-        file_stream = open(filelike, "rb")
+
+        file_stream = make_filestream(filelike)
+
     tokenizer = rofftok.RoffTokenizer(file_stream)
     parser = roffparse.RoffParser(iter(tokenizer), file_stream)
+
     yield iter(EndianessHandler(parser, tokenizer))
 
     if did_open:
