@@ -77,7 +77,7 @@ def cast_to_roff(value, type_str):
 
 
 def cast_array_to_roff(value):
-    if value.dtype in [np.bool, np.int32, np.uint8, np.float32, np.float64]:
+    if value.dtype in [np.bool_, np.int32, np.uint8, np.float32, np.float64]:
         return value
     elif value.dtype == np.int8:
         result_dtype = np.uint8
