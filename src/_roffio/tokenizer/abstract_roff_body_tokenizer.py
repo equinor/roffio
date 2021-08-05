@@ -131,7 +131,6 @@ class AbstractRoffBodyTokenizer(ABC):
 
     @abstractmethod
     def tokenize_end_of_file(self):
-        pass
         start = self.stream.tell()
         r = self.stream.read(1)
         if r:
