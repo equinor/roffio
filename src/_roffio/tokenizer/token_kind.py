@@ -1,24 +1,24 @@
-from enum import Enum, unique
+from enum import Enum, auto, unique
 
 
 @unique
 class TokenKind(Enum):
-    ROFF_ASC = 1
-    ROFF_BIN = 2
-    TAG = 3
-    ENDTAG = 4
-    STRING_LITERAL = 5
-    NUMERIC_VALUE = 6
-    BINARY_NUMERIC_VALUE = 7
-    NAME = 8
-    CHAR = 10
-    BOOL = 11
-    BYTE = 12
-    INT = 13
-    FLOAT = 14
-    DOUBLE = 15
-    ARRAY = 16
-    ARRAYBLOB = 17
+    ROFF_ASC = auto()
+    ROFF_BIN = auto()
+    TAG = auto()
+    ENDTAG = auto()
+    STRING_LITERAL = auto()
+    NUMERIC_VALUE = auto()
+    BINARY_NUMERIC_VALUE = auto()
+    NAME = auto()
+    CHAR = auto()
+    BOOL = auto()
+    BYTE = auto()
+    INT = auto()
+    FLOAT = auto()
+    DOUBLE = auto()
+    ARRAY = auto()
+    ARRAYBLOB = auto()
 
     @classmethod
     def simple_types(cls):
