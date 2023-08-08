@@ -6,6 +6,7 @@ from enum import Enum, unique
 from functools import wraps
 
 import numpy as np
+
 from roffio.version import version as roffio_version
 
 
@@ -128,7 +129,7 @@ def write_ascii_value(stream, value, type_str):
 
 
 def write_binary_tagkey(file_stream, tagkey_name, value):
-    if type(value) == np.ndarray:
+    if type(value) is np.ndarray:
         file_stream.write(b"array\0")
         value = cast_array_to_roff(value)
         file_stream.write(numpy_to_roff_dtype(value.dtype).encode("ascii"))

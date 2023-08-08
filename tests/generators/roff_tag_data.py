@@ -7,7 +7,7 @@ tag_contents = st.dictionaries(
     st.one_of(
         st.binary(min_size=1, max_size=1),
         st.booleans(),
-        st.integers(min_value=-(2 ** 29), max_value=2 ** 29),
+        st.integers(min_value=-(2**29), max_value=2**29),
         st.floats(allow_infinity=False, allow_nan=False),
         keys,
     ),
