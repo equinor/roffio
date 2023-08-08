@@ -1,6 +1,6 @@
-from pkg_resources import DistributionNotFound, get_distribution
+from importlib.metadata import PackageNotFoundError, version
 
 try:
-    version = get_distribution(__name__).version
-except DistributionNotFound:
+    version = version("RoffIO")
+except PackageNotFoundError:
     version = "0.0.0"

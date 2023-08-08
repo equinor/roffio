@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v4.4.0
     hooks:
     -   id: check-json
     -   id: check-yaml
@@ -8,12 +8,12 @@ repos:
     -   id: trailing-whitespace
 
 -   repo: https://github.com/ambv/black
-    rev: stable
+    rev: 23.7.0
     hooks:
     - id: black
 
 -   repo: https://github.com/pycqa/flake8
-    rev: 3.9.2
+    rev: 6.1.0
     hooks:
     - id: flake8
 exclude: tests/testdata/eclipse

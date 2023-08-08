@@ -50,7 +50,7 @@ def binary_values(draw, kindstr):
 ascii_values = st.builds(
     str,
     st.one_of(
-        st.integers(min_value=-(2 ** 30), max_value=2 ** 30),
+        st.integers(min_value=-(2**30), max_value=2**30),
         st.floats(allow_infinity=False, allow_nan=False),
         string_literals(),
     ),
@@ -63,7 +63,7 @@ def typed_ascii_values(kindstr):
     elif kindstr == "byte":
         return st.integers(min_value=0, max_value=127)
     elif kindstr == "int":
-        return st.integers(min_value=-(2 ** 30), max_value=2 ** 30)
+        return st.integers(min_value=-(2**30), max_value=2**30)
     elif kindstr == "float":
         return st.floats(allow_infinity=False, allow_nan=False)
     elif kindstr == "double":
