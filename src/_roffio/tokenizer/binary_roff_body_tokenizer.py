@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from _roffio.tokenizer.abstract_roff_body_tokenizer import AbstractRoffBodyTokenizer
 from _roffio.tokenizer.combinators import bind, repeated
 from _roffio.tokenizer.common import tokenize_word
@@ -43,7 +45,7 @@ class BinaryRoffBodyTokenizer(AbstractRoffBodyTokenizer):
     def stream(self):
         return self._stream
 
-    @property
+    @cached_property
     def tokenize_keyword(self):
         return {
             kw_kind: bind(
