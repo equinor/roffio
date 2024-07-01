@@ -40,14 +40,14 @@ def read(filelike):
 
 
 def make_filestream(filelike):
-    file_stream = open(filelike, "rb")
+    file_stream = open(filelike, "rb")  # noqa SIM115
     tokenizer = rofftok.RoffTokenizer(file_stream)
     try:
         next(iter(tokenizer))
         file_stream.seek(0)
     except WrongFileModeError:
         file_stream.close()
-        file_stream = open(filelike, "rt")
+        file_stream = open(filelike, "rt")  # noqa SIM115
 
     return file_stream
 

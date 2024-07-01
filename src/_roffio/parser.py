@@ -4,6 +4,7 @@ generates the corresponding roff data. For entire files, roff data is a two leve
 dictionary of tagname and tagkeyname to values, but for subsections of roff
 files, the parser returns the corresponding subdata of the dictionary.
 """
+
 from itertools import chain, dropwhile, tee
 
 import numpy as np
@@ -269,7 +270,7 @@ class RoffTagKeyParser:
             self.parse_numeric_value(dtype[self.roffparser.endianess][TokenKind.INT])
         )
         values = next(self.parse_array_values(typ, name, number))
-        if isinstance(values, np.ndarray) or isinstance(values, bytes):
+        if isinstance(values, (np.ndarray, bytes)):
             yield (name, values)
         else:
             yield LazyTuple(lambda: name, values)
@@ -363,10 +364,10 @@ class RoffParser:
                 tag = next(self.parse_tag())
                 try:
                     next(parse_one_of(TokenKind.ENDTAG)(self.tokens))
-                except StopIteration:
+                except StopIteration as err:
                     raise RoffSyntaxError(
                         f"did not find closing endtag for tag {tag[0]}"
-                    )
+                    ) from err
                 yield tag
             except StopIteration:
                 break

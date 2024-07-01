@@ -16,13 +16,9 @@ def tokenlen(tokenkind):
     :param tokenkind: A fixed bytesize type, eg. TokenKind.BOOL.
     :returns: The number of bytes used for that type.
     """
-    if tokenkind == TokenKind.BOOL:
+    if tokenkind in (TokenKind.BOOL, TokenKind.BYTE):
         return 1
-    elif tokenkind == TokenKind.BYTE:
-        return 1
-    elif tokenkind == TokenKind.INT:
-        return 4
-    elif tokenkind == TokenKind.FLOAT:
+    elif tokenkind in (TokenKind.INT, TokenKind.FLOAT):
         return 4
     elif tokenkind == TokenKind.DOUBLE:
         return 8
@@ -104,7 +100,7 @@ class BinaryRoffBodyTokenizer(AbstractRoffBodyTokenizer):
             start = self.stream.tell()
             last_alnum = start
             read_char = self.stream.read(1)
-            while read_char and not read_char == b"\0":
+            while read_char and read_char != b"\x00":
                 last_alnum = self.stream.tell()
                 read_char = self.stream.read(1)
             if read_char != b"\0":

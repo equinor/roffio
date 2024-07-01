@@ -8,13 +8,9 @@ simple_types = st.sampled_from(["char", "bool", "byte", "int", "float", "double"
 
 
 def tokenlen(kindstr):
-    if kindstr == "bool":
+    if kindstr in {"bool", "byte"}:
         return 1
-    elif kindstr == "byte":
-        return 1
-    elif kindstr == "int":
-        return 4
-    elif kindstr == "float":
+    elif kindstr in {"int", "float"}:
         return 4
     elif kindstr == "double":
         return 8
@@ -64,9 +60,7 @@ def typed_ascii_values(kindstr):
         return st.integers(min_value=0, max_value=127)
     elif kindstr == "int":
         return st.integers(min_value=-(2**30), max_value=2**30)
-    elif kindstr == "float":
-        return st.floats(allow_infinity=False, allow_nan=False)
-    elif kindstr == "double":
+    elif kindstr in {"float", "double"}:
         return st.floats(allow_infinity=False, allow_nan=False)
     elif kindstr == "char":
         return string_literals()
