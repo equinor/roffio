@@ -34,7 +34,7 @@ def test_wrong_mode_error_binary():
     tokenizer = RoffTokenizer(stream)
     tokens = iter(tokenizer)
     with pytest.raises(WrongFileModeError):
-        next(tokens).kind
+        next(tokens).kind  # noqa: B018
 
 
 def test_wrong_mode_error_ascii():
@@ -42,4 +42,4 @@ def test_wrong_mode_error_ascii():
     tokenizer = RoffTokenizer(stream)
     tokens = iter(tokenizer)
     with pytest.raises(WrongFileModeError):
-        next(tokens).kind
+        next(tokens).kind  # noqa: B018

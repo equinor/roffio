@@ -89,7 +89,10 @@ def cast_array_to_roff(value):
     else:
         raise ValueError(f"Cannot cast {value.dtype} to a roff type")
 
-    warnings.warn(f"casting array dtype {value.dtype} to {result_dtype}")
+    warnings.warn(
+        f"casting array dtype {value.dtype} to {result_dtype}",
+        stacklevel=1,
+    )
     return value.astype(result_dtype)
 
 
@@ -182,10 +185,7 @@ def write_binary_roff(file_stream, values):
     file_stream.write(f"#Creator: roffio, version {roffio_version}#".encode("ascii"))
     file_stream.write(b"\0")
 
-    if hasattr(values, "items"):
-        values_list = values.items()
-    else:
-        values_list = iter(values)
+    values_list = values.items() if hasattr(values, "items") else iter(values)
 
     for tag_name, tag_keys in values_list:
         file_stream.write(b"tag\0")
@@ -259,10 +259,7 @@ def write_ascii_roff(file_stream, values):
     file_stream.write("#ROFF file#\n")
     file_stream.write(f"#Creator: roffio, version {roffio_version}#\n")
 
-    if hasattr(values, "items"):
-        values_list = values.items()
-    else:
-        values_list = iter(values)
+    values_list = values.items() if hasattr(values, "items") else iter(values)
 
     for tag_name, tag_keys in values_list:
         file_stream.write(f"tag {tag_name}\n")
@@ -311,10 +308,7 @@ def write(filelike, values, roff_format=Format.BINARY):
     """
     metadata_values = roff_metadata()
 
-    if hasattr(values, "items"):
-        values_list = list(values.items())
-    else:
-        values_list = list(values)
+    values_list = list(values.items()) if hasattr(values, "items") else list(values)
 
     for k, v in values_list:
         if k in metadata_values:

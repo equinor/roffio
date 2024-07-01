@@ -54,7 +54,8 @@ class EndianessHandler:
             warnings.warn(
                 "First tag of file is not filedata, "
                 f"default endianess {self.roff_parser.endianess}-endian is used "
-                "without checking 'byteswaptest' field."
+                "without checking 'byteswaptest' field.",
+                stacklevel=1,
             )
         return tag
 

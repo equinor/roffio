@@ -1,3 +1,4 @@
+import contextlib
 import io
 
 import numpy as np
@@ -155,10 +156,8 @@ def test_parse_ascii_file(ascii_str):
     stream = io.StringIO(ascii_str)
     tokens = iter(RoffTokenizer(stream))
     parser = roffparse.RoffParser(tokens, stream)
-    try:
-        {t: {tk: v for tk, v in tags} for t, tags in iter(parser)}
-    except roffparse.RoffTypeError:
-        pass
+    with contextlib.suppress(roffparse.RoffTypeError):
+        {t: dict(tags) for t, tags in iter(parser)}
 
 
 @given(binary_file_contents())
@@ -166,10 +165,8 @@ def test_parse_binary_file(binary_str):
     stream = io.BytesIO(binary_str)
     tokens = iter(RoffTokenizer(stream, endianess="little"))
     parser = roffparse.RoffParser(tokens, stream)
-    try:
-        {t: {tk: v for tk, v in tags} for t, tags in iter(parser)}
-    except roffparse.RoffTypeError:
-        pass
+    with contextlib.suppress(roffparse.RoffTypeError):
+        {t: dict(tags) for t, tags in iter(parser)}
 
 
 @pytest.mark.parametrize(
@@ -318,7 +315,7 @@ def test_parse_byte_array_values():
 
 def test_endianess_swap():
     stream = io.BytesIO(
-        b"roff-bin\0tag\0t\0int\0x\0\x01\0\0\0int\0y\0\0\0\0\xFFendtag\0"
+        b"roff-bin\0tag\0t\0int\0x\0\x01\0\0\0int\0y\0\0\0\0\xffendtag\0"
     )
     tokenizer = RoffTokenizer(stream)
     parser = roffparse.RoffParser(iter(tokenizer), stream)

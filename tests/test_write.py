@@ -1,8 +1,9 @@
 import io
 
-import _roffio.writing as roffwrite
 import numpy as np
 import pytest
+
+import _roffio.writing as roffwrite
 
 
 @pytest.mark.parametrize(
