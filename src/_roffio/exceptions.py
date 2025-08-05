@@ -1,0 +1,2 @@
+class RoffWriteError(Exception):
+    pass

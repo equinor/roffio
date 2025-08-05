@@ -7,11 +7,8 @@ from functools import wraps
 
 import numpy as np
 
+from _roffio.exceptions import RoffWriteError
 from roffio.version import version as roffio_version
-
-
-class RoffWriteError(Exception):
-    pass
 
 
 def type_string(value):
