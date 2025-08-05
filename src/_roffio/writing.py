@@ -220,6 +220,13 @@ def check_valid_ascii_name(name):
         )
 
 
+def check_valid_ascii_value(value):
+    if isinstance(value, str) and '"' in value:
+        raise RoffWriteError(
+            """ROFF ASCII-values cannot contain double apostrophes. (use ' instead of ")"""
+        )
+
+
 def write_ascii_tagkey(file_stream, tagkey_name, value):
     check_valid_ascii_name(tagkey_name)
     if is_array_type(value):
@@ -245,6 +252,7 @@ def write_ascii_tagkey(file_stream, tagkey_name, value):
                 file_stream.write("\n")
     else:
         typ_str = type_string(value)
+        check_valid_ascii_value(value)
         file_stream.write(f"{typ_str} {tagkey_name} ")
         write_ascii_value(file_stream, value, typ_str)
         file_stream.write("\n")

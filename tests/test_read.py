@@ -1,4 +1,4 @@
-from roffio import read
+from roffio import Format, read, write
 
 
 def test_file_mode_creation(tmp_path):
@@ -13,3 +13,11 @@ def test_file_mode_creation(tmp_path):
         f.write("roff-asc tag a int σ 0 endtag")
 
     assert read(test_file) == {"a": {"σ": 0}}
+
+
+def test_read_handles_single_quotation_marks(tmpdir):
+    contents = {"tagname": [("keyname", "'")]}
+
+    with tmpdir.as_cwd():
+        write("file.roff", contents, roff_format=Format.ASCII)
+        read("file.roff")
