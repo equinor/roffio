@@ -163,7 +163,7 @@ def test_parse_ascii_file(ascii_str):
 @given(binary_file_contents())
 def test_parse_binary_file(binary_str):
     stream = io.BytesIO(binary_str)
-    tokens = iter(RoffTokenizer(stream, endianess="little"))
+    tokens = iter(RoffTokenizer(stream, endianness="little"))
     parser = roffparse.RoffParser(tokens, stream)
     with contextlib.suppress(roffparse.RoffTypeError):
         {t: dict(tags) for t, tags in iter(parser)}
@@ -313,7 +313,7 @@ def test_parse_byte_array_values():
     assert next(iter(parser)) == ("x", b"\xff\x00")
 
 
-def test_endianess_swap():
+def test_endianness_swap():
     stream = io.BytesIO(
         b"roff-bin\0tag\0t\0int\0x\0\x01\0\0\0int\0y\0\0\0\0\xffendtag\0"
     )
@@ -322,11 +322,11 @@ def test_endianess_swap():
     tag = next(iter(parser))
     assert tag[0] == "t"
     assert next(tag[1]) == ("x", 1)
-    assert tokenizer.endianess == "little"
-    assert parser.endianess == "little"
-    tokenizer.swap_endianess()
-    parser.swap_endianess()
-    assert tokenizer.endianess == "big"
-    assert parser.endianess == "big"
+    assert tokenizer.endianness == "little"
+    assert parser.endianness == "little"
+    tokenizer.swap_endianness()
+    parser.swap_endianness()
+    assert tokenizer.endianness == "big"
+    assert parser.endianness == "big"
     assert tag[0] == "t"
     assert next(tag[1]) == ("y", 255)

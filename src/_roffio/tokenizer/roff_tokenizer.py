@@ -29,26 +29,26 @@ def tokenize_header(stream):
 
 
 class RoffTokenizer:
-    def __init__(self, stream, endianess="little"):
+    def __init__(self, stream, endianness="little"):
         """
         :param stream: A byte stream containing roff data.
         """
         self.stream = stream
         self.body_tokenizer = None
-        self.endianess = endianess
+        self.endianness = endianness
 
-    def swap_endianess(self):
-        if self.endianess == "little":
-            self.endianess = "big"
+    def swap_endianness(self):
+        if self.endianness == "little":
+            self.endianness = "big"
         else:
-            self.endianess = "little"
+            self.endianness = "little"
         if self.body_tokenizer is not None:
-            self.body_tokenizer.endianess = self.endianess
+            self.body_tokenizer.endianness = self.endianness
 
     def initialize_body_tokenizer(self, header_kind):
         if header_kind == TokenKind.ROFF_BIN:
             self.body_tokenizer = BinaryRoffBodyTokenizer(
-                self.stream, endianess=self.endianess
+                self.stream, endianness=self.endianness
             )
         elif header_kind == TokenKind.ROFF_ASC:
             self.body_tokenizer = TextRoffBodyTokenizer(self.stream)

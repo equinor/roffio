@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from _roffio.endianess_handler import EndianessHandler, RoffFormatError
+from _roffio.endianness_handler import EndiannessHandler, RoffFormatError
 
 
 def test_no_filedata_warning():
@@ -11,7 +11,7 @@ def test_no_filedata_warning():
     parser.__iter__.return_value = iter([("tagname", [])])
 
     with pytest.warns(UserWarning):
-        next(iter(EndianessHandler(parser, tokenizer)))
+        next(iter(EndiannessHandler(parser, tokenizer)))
 
 
 def test_no_byteswaptest_error():
@@ -20,7 +20,7 @@ def test_no_byteswaptest_error():
     parser.__iter__.return_value = iter([("filedata", [])])
 
     with pytest.raises(RoffFormatError):
-        next(iter(EndianessHandler(parser, tokenizer)))
+        next(iter(EndiannessHandler(parser, tokenizer)))
 
 
 def test_double_filedata_error():
@@ -29,7 +29,7 @@ def test_double_filedata_error():
     input_data = ("filedata", [("byteswaptest", 1)])
     parser.__iter__.return_value = iter([input_data] * 2)
 
-    data_iter = iter(EndianessHandler(parser, tokenizer))
+    data_iter = iter(EndiannessHandler(parser, tokenizer))
     output_data = next(data_iter)
 
     assert (output_data[0], list(output_data[1])) == input_data
@@ -43,10 +43,10 @@ def test_filedata_swaps():
     parser = MagicMock()
     parser.__iter__.return_value = iter([("filedata", [("byteswaptest", -1)])])
 
-    data = next(iter(EndianessHandler(parser, tokenizer)))
+    data = next(iter(EndiannessHandler(parser, tokenizer)))
 
     assert data[0] == "filedata"
     assert list(data[1]) == [("byteswaptest", 1)]
 
-    parser.swap_endianess.assert_called_once()
-    tokenizer.swap_endianess.assert_called_once()
+    parser.swap_endianness.assert_called_once()
+    tokenizer.swap_endianness.assert_called_once()

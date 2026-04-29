@@ -191,12 +191,12 @@ terminated strings in the array:
 `array char str_arr \x00\x00\x00\x02\0hello world\0hello again\0`.
 
 
-### Endianess and filedata tag
+### Endianness and filedata tag
 
-There is no fixed endianess defined for the roff format. Instead, a filedata
+There is no fixed endianness defined for the roff format. Instead, a filedata
 tag is added as the first tag in the file. In addition to metadata about
 creation date and filetype, the `byteswaptest` record key is added which
-should be set to `1` in whatever endianess the file is intended to be read in.
+should be set to `1` in whatever endianness the file is intended to be read in.
 
 ```
 tag filedata
