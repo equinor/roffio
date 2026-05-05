@@ -90,7 +90,7 @@ def parse_name(tokens, stream):
     yield as_ascii(token.get_value(stream))
 
 
-# Map from endianess and token kind to numpy dtype
+# Map from endianness and token kind to numpy dtype
 # used for reading numeric values with
 # a given type.
 dtype_little = {
@@ -111,7 +111,7 @@ class RoffTagKeyParser:
     Parser for a tagkey, used by RoffParser to lazily
     generate data for a given tag. Therefore, belongs
     to a RoffParser in order to share parameters such
-    as endianess.
+    as endianness.
 
     >>> buffer = io.StringIO("int x 3")
     >>> tokens = iter(RoffTokenizer(buffer))
@@ -153,7 +153,7 @@ class RoffTagKeyParser:
         if len(val_str) != 1:
             raise RoffSyntaxError(f"too long boolean value, found: {val_str}")
         if self.roffparser.is_binary_file:
-            value = int.from_bytes(val_str, self.roffparser.endianess)
+            value = int.from_bytes(val_str, self.roffparser.endianness)
         else:
             value = int(as_ascii(val_str))
 
@@ -211,10 +211,10 @@ class RoffTagKeyParser:
         elif typ == TokenKind.BOOL:
             yield from self.parse_boolean_value()
         elif typ == TokenKind.BYTE:
-            val = next(self.parse_numeric_value(dtype[self.roffparser.endianess][typ]))
+            val = next(self.parse_numeric_value(dtype[self.roffparser.endianness][typ]))
             yield val.tobytes()
         else:
-            yield from self.parse_numeric_value(dtype[self.roffparser.endianess][typ])
+            yield from self.parse_numeric_value(dtype[self.roffparser.endianness][typ])
 
     def parse_simple_tagkey_body(self, typ):
         """
@@ -243,7 +243,7 @@ class RoffTagKeyParser:
                 yield (
                     lambda: np.ndarray(
                         number,
-                        dtype[self.roffparser.endianess][typ],
+                        dtype[self.roffparser.endianness][typ],
                         first_tok.get_value(self.stream),
                     )
                 )
@@ -267,7 +267,7 @@ class RoffTagKeyParser:
         typ = next(parse_simple_type(self.tokens))
         name = next(parse_name(self.tokens, self.stream))
         number = next(
-            self.parse_numeric_value(dtype[self.roffparser.endianess][TokenKind.INT])
+            self.parse_numeric_value(dtype[self.roffparser.endianness][TokenKind.INT])
         )
         values = next(self.parse_array_values(typ, name, number))
         if isinstance(values, (np.ndarray, bytes)):
@@ -306,41 +306,41 @@ class RoffParser:
     ("x", 3)
 
     Note: The parser does not handle the "byteswaptest" tag key
-    in the "filedata" tag. Instead, endianess used for
+    in the "filedata" tag. Instead, endianness used for
     parsing can be changed at any time.
 
     """
 
-    def __init__(self, tokens, stream, endianess="little"):
+    def __init__(self, tokens, stream, endianness="little"):
         """
         :param tokens: iterator of tokens, ie. RoffTokenizer.
         :param stream: The stream of characters or bytes
             the tokens refer to.
-        :param endianess: Either "little" or "big" for little
+        :param endianness: Either "little" or "big" for little
             endian and big endian, respectivly.
         """
         self.tokens = tokens
         self.stream = stream
         self.is_binary_file = False
 
-        self._endianess = None
-        self.endianess = endianess
+        self._endianness = None
+        self.endianness = endianness
 
     @property
-    def endianess(self):
-        return self._endianess
+    def endianness(self):
+        return self._endianness
 
-    @endianess.setter
-    def endianess(self, value):
+    @endianness.setter
+    def endianness(self, value):
         if value not in ["little", "big"]:
-            raise ValueError("endianess has to be either 'little' or 'big'")
-        self._endianess = value
+            raise ValueError("endianness has to be either 'little' or 'big'")
+        self._endianness = value
 
-    def swap_endianess(self):
-        if self.endianess == "little":
-            self.endianess = "big"
+    def swap_endianness(self):
+        if self.endianness == "little":
+            self.endianness = "big"
         else:
-            self.endianess = "little"
+            self.endianness = "little"
 
     def parse_tag(self):
         try:

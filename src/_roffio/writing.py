@@ -119,7 +119,7 @@ def write_ascii_value(stream, value, type_str):
     elif type_str == "byte" and isinstance(value, bytes):
         if len(value) != 1:
             raise RoffWriteError(
-                "Bytes in roff format must have length 1 " f"found {value}"
+                f"Bytes in roff format must have length 1 found {value}"
             )
         stream.write(str(int.from_bytes(value, "little")))
     elif type_str == "bool" and isinstance(value, bool):
@@ -341,7 +341,7 @@ def write(filelike, values, roff_format=Format.BINARY):
         raise ValueError(
             "It is not possible to set the byteswaptest value in roffio.write"
             f", found value {values['filedata']['byteswaptest']}."
-            "\nUse the endianess parameter to set endianess."
+            "\nUse the endianness parameter to set endianness."
         )
 
     if roff_format == Format.BINARY:

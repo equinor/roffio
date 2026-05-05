@@ -7,26 +7,26 @@ from _roffio.tokenizer.errors import WrongFileModeError
 from _roffio.tokenizer.token_kind import TokenKind
 
 
-def test_swap_endianess():
+def test_swap_endianness():
     stream = io.BytesIO(b"roff-bin\0")
     tokenizer = RoffTokenizer(stream)
-    assert tokenizer.endianess == "little"
+    assert tokenizer.endianness == "little"
     tokens = iter(tokenizer)
     assert next(tokens).kind == TokenKind.ROFF_BIN
-    assert tokenizer.body_tokenizer.endianess == "little"
-    tokenizer.swap_endianess()
-    assert tokenizer.endianess == "big"
-    assert tokenizer.body_tokenizer.endianess == "big"
+    assert tokenizer.body_tokenizer.endianness == "little"
+    tokenizer.swap_endianness()
+    assert tokenizer.endianness == "big"
+    assert tokenizer.body_tokenizer.endianness == "big"
 
 
-def test_swap_endianess_ascii():
+def test_swap_endianness_ascii():
     stream = io.StringIO("roff-asc ")
     tokenizer = RoffTokenizer(stream)
-    assert tokenizer.endianess == "little"
+    assert tokenizer.endianness == "little"
     tokens = iter(tokenizer)
     assert next(tokens).kind == TokenKind.ROFF_ASC
-    tokenizer.swap_endianess()
-    assert tokenizer.endianess == "big"
+    tokenizer.swap_endianness()
+    assert tokenizer.endianness == "big"
 
 
 def test_wrong_mode_error_binary():

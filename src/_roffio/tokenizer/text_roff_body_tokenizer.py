@@ -41,7 +41,7 @@ class TextRoffBodyTokenizer(AbstractRoffBodyTokenizer):
     def tokenize_value(self):
         return one_of(self.tokenize_numeric_value, self.tokenize_string_literal)
 
-    def swap_endianess(self):
+    def swap_endianness(self):
         pass
 
     def tokenize_numeric_value(self):

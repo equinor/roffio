@@ -27,15 +27,15 @@ def tokenlen(tokenkind):
 
 
 class BinaryRoffBodyTokenizer(AbstractRoffBodyTokenizer):
-    def __init__(self, stream, endianess="little"):
+    def __init__(self, stream, endianness="little"):
         """
         :param stream: A byte stream containing roff data.
-        :param endianess: The endianess of the file, used only for
+        :param endianness: The endianness of the file, used only for
             determining the size of arrays in binary roff files.
         """
         self._stream = stream
-        self._endianess = None
-        self.endianess = endianess
+        self._endianness = None
+        self.endianness = endianness
 
     @property
     def stream(self):
@@ -125,20 +125,20 @@ class BinaryRoffBodyTokenizer(AbstractRoffBodyTokenizer):
             return self.tokenize_numeric_value(kind)
 
     @property
-    def endianess(self):
-        return self._endianess
+    def endianness(self):
+        return self._endianness
 
-    @endianess.setter
-    def endianess(self, value):
+    @endianness.setter
+    def endianness(self, value):
         if value not in ["little", "big"]:
-            raise ValueError("endianess has to be either 'little' or 'big'")
-        self._endianess = value
+            raise ValueError("endianness has to be either 'little' or 'big'")
+        self._endianness = value
 
-    def swap_endianess(self):
-        if self.endianess == "little":
-            self.endianess = "big"
+    def swap_endianness(self):
+        if self.endianness == "little":
+            self.endianness = "big"
         else:
-            self.endianess = "little"
+            self.endianness = "little"
 
     def tokenize_comment(self):
         """
@@ -173,7 +173,7 @@ class BinaryRoffBodyTokenizer(AbstractRoffBodyTokenizer):
             in the array.
         """
         num_values = int.from_bytes(
-            num_values_token.get_value(self.stream), self.endianess
+            num_values_token.get_value(self.stream), self.endianness
         )
         # We do not use binary_delimited here because in the binary format it is
         # not possible to know whether you have a comment or a value starting with

@@ -9,10 +9,10 @@ class RoffFormatError(Exception):
     pass
 
 
-class EndianessHandler:
+class EndiannessHandler:
     """
     An iterator that consumes from RoffParser and handles setting
-    the endianess according to the byteswaptest tagkey in the
+    the endianness according to the byteswaptest tagkey in the
     filedata tag.
 
     If filedata tag is not first tag, a warning is emitted.
@@ -24,10 +24,10 @@ class EndianessHandler:
         self.found_byteswaptest = False
         self.has_warned = False
 
-    def check_endianess(self, tag):
+    def check_endianness(self, tag):
         """
         If given the filedata tag, check for byteswaptest tagkey
-        and set endianess of parser and tokenizer accordingly.
+        and set endianness of parser and tokenizer accordingly.
         """
         if tag[0] == "filedata":
             if self.found_byteswaptest:
@@ -41,8 +41,8 @@ class EndianessHandler:
 
             self.found_byteswaptest = True
             if tagkeys["byteswaptest"] != 1:
-                self.roff_parser.swap_endianess()
-                self.roff_tokenizer.swap_endianess()
+                self.roff_parser.swap_endianness()
+                self.roff_tokenizer.swap_endianness()
                 tagkeys["byteswaptest"] = 1
             return (tag[0], tagkeys.items())
         if (
@@ -53,7 +53,7 @@ class EndianessHandler:
             self.has_warned = True
             warnings.warn(
                 "First tag of file is not filedata, "
-                f"default endianess {self.roff_parser.endianess}-endian is used "
+                f"default endianness {self.roff_parser.endianness}-endian is used "
                 "without checking 'byteswaptest' field.",
                 stacklevel=1,
             )
@@ -64,7 +64,7 @@ class EndianessHandler:
         while True:
             try:
                 tag = next(roff_iterator)
-                new_tag = self.check_endianess(tag)
+                new_tag = self.check_endianness(tag)
                 yield new_tag
             except StopIteration:
                 return
