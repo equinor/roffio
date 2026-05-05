@@ -78,7 +78,7 @@ class TextRoffBodyTokenizer(AbstractRoffBodyTokenizer):
             literal_start = self.stream.tell()
             read_char = self.stream.read(1)
             literal_end = self.stream.tell()
-            while read_char and read_char not in '"':
+            while read_char and read_char != '"':
                 literal_end = self.stream.tell()
                 read_char = self.stream.read(1)
             if not read_char:
